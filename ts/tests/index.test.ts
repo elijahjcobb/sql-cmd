@@ -200,8 +200,6 @@ test("Insert", () => {
 
 test("Update", () => {
 
-	const data: Buffer = Crypto.randomBytes(2);
-
 	const cmd: ECSQLCMD = ECSQLCMD
 		.update("tab")
 		.set("name", "Elijah")
