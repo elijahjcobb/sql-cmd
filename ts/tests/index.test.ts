@@ -21,3 +21,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
+
+import { ECSQLCMD, ECSQLCMDQuery } from "../index";
+
+describe("Select Queries", () => {
+
+});
+
+describe("Delete Queries", () => {
+
+});
+
+describe("Insert Queries", () => {
+
+});
+
+describe("Update Queries", () => {
+
+});
