@@ -1,41 +1,41 @@
 {
- "name": "@elijahjcobb/sql-cmd",
- "version": "0.0.1",
- "description": "",
- "main": "dist/index",
- "types": "dist/index",
- "scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "prepublishOnly": "npm run compile",
-  "compile": "npm run clean && /usr/local/bin/tsc -p tsconfig.json",
-  "watch": "tsc -w -p .",
-  "clean": "rm -rf dist"
- },
- "repository": {
-  "type": "git",
-  "url": "git+https://github.com/elijahjcobb/sql-cmd.git"
- },
- "publishConfig": {
-  "access": "public"
- },
- "keywords": [],
- "author": "Elijah Cobb <elijah@elijahcobb.com> (https://elijahcobb.com/)",
- "license": "MIT",
- "bugs": {
-  "url": "https://github.com/elijahjcobb/sql-cmd/issues"
- },
- "homepage": "https://github.com/elijahjcobb/sql-cmd#readme",
- "dependencies": {
-  "@elijahjcobb/collections": "latest"
- },
- "devDependencies": {
-  "@types/node": "latest",
-  "typescript": "latest",
-  "tslint": "latest",
-  "jest": "latest",
-  "@types/jest": "latest"
- },
- "files": [
-  "dist"
- ]
+	"name": "@elijahjcobb/sql-cmd",
+	"version": "0.0.1",
+	"description": "A SQL command builder using the 'modifier' paradigm.",
+	"main": "dist/index",
+	"types": "dist/index",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"prepublishOnly": "npm run compile",
+		"compile": "npm run clean && /usr/local/bin/tsc -p tsconfig.json",
+		"watch": "tsc -w -p .",
+		"clean": "rm -rf dist"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/elijahjcobb/sql-cmd.git"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": ["SQL", "command", "builder", "create", "modifiers", "mariadb"],
+	"author": "Elijah Cobb <elijah@elijahcobb.com> (https://elijahcobb.com/)",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/elijahjcobb/sql-cmd/issues"
+	},
+	"homepage": "https://github.com/elijahjcobb/sql-cmd#readme",
+	"dependencies": {
+		"@elijahjcobb/collections": "latest"
+	},
+	"devDependencies": {
+		"@types/node": "latest",
+		"typescript": "latest",
+		"tslint": "latest",
+		"jest": "latest",
+		"@types/jest": "latest"
+	},
+	"files": [
+		"dist"
+	]
 }
