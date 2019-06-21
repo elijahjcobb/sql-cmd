@@ -57,7 +57,7 @@ export class ECSQLCMD {
 	private readonly method: ECSQLCMDMethod;
 	private table: string | undefined;
 	private orderings: { key: string, direction: ECSQLCMDSort}[] = [];
-	private limitOfItems: number | undefined;
+	private limitOfItems: number = -1;
 	private parameters: ECMap<string, ECSQLCMDValue> = new ECMap<string, ECSQLCMDValue>();
 	private queries: ECSQLCMDQuery | undefined;
 
@@ -107,6 +107,7 @@ export class ECSQLCMD {
 
 	public generate(): string {
 
+		if (this.table === undefined) throw Error("You must specify a table with from(), in(), or into().");
 		let command: string = "";
 
 		if (this.method === ECSQLCMDMethod.select) {
@@ -125,9 +126,9 @@ export class ECSQLCMD {
 				});
 
 				command += formattedOrders.join(", ");
-				if (this.limitOfItems !== undefined) command += ` LIMIT ${this.limitOfItems}`;
-
 			}
+
+			if (this.limitOfItems !== -1) command += ` LIMIT ${this.limitOfItems}`;
 
 		} else if (this.method === ECSQLCMDMethod.insert) {
 
