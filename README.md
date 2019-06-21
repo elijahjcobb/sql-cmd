@@ -77,9 +77,9 @@ cmd.generate() // => UPDATE tab SET name='Elijah' WHERE (id='xxx');
 ```
 
 ## Documentation
-Everything is completely documented. You can view the
+You can view the
 [declaration files](https://github.com/elijahjcobb/sql-cmd/tree/master/dist) or even the
-[source code](https://github.com/elijahjcobb/sql-cmd/tree/master/ts) on GitHub.
+[source code](https://github.com/elijahjcobb/sql-cmd/tree/master/ts) on GitHub it is all written in TypeScript.
 
 ## Bugs
 If you find any bugs please [create an issue on GitHub](https://github.com/elijahjcobb/sql-cmd/issues)
