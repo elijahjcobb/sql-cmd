@@ -25,7 +25,9 @@
   "url": "https://github.com/elijahjcobb/sql-cmd/issues"
  },
  "homepage": "https://github.com/elijahjcobb/sql-cmd#readme",
- "dependencies": {},
+ "dependencies": {
+  "@elijahjcobb/collections": "latest"
+ },
  "devDependencies": {
   "@types/node": "latest",
   "typescript": "latest",
