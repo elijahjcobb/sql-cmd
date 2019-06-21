@@ -26,6 +26,127 @@ import { ECSQLCMD, ECSQLCMDQuery } from "../index";
 
 describe("Select Queries", () => {
 
+	test("Base Query", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab");
+
+		const realCmd: string = `SELECT * FROM tab;`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Limiting", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab")
+			.limit(12);
+
+		const realCmd: string = `SELECT * FROM tab LIMIT 12;`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Sorting", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab")
+			.sort("foo", "<");
+
+		const realCmd: string = `SELECT * FROM tab ORDER BY foo ASC;`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Sorting & Limiting", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab")
+			.sort("foo", "<")
+			.limit(12);
+
+		const realCmd: string = `SELECT * FROM tab ORDER BY foo ASC LIMIT 12;`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Conditionals", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab")
+			.where(ECSQLCMDQuery
+				.and()
+				.where("key1", "=", "hi")
+				.where("key2", "<=", 10)
+			);
+
+		const realCmd: string = `SELECT * FROM tab WHERE (key1='hi' AND key2<=10);`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Nested Conditional", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab")
+			.where(ECSQLCMDQuery
+				.or()
+				.whereThese(ECSQLCMDQuery
+					.and()
+					.where("age", ">", 18)
+					.where("age", "<", 21)
+				)
+				.where("age", "=", 16)
+			);
+
+		const realCmd: string = `SELECT * FROM tab WHERE ((age>18 AND age<21) OR age=16);`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Multi Layered Nested Conditional", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab")
+			.where(ECSQLCMDQuery
+				.or()
+				.whereThese(ECSQLCMDQuery
+					.and()
+					.where("age", ">=", 18)
+					.where("age", "<=", 21)
+					.whereThese(
+						ECSQLCMDQuery
+							.or()
+							.where("gender", "=", true)
+							.where("isCool", "!=", false)
+					)
+				)
+				.whereThese(ECSQLCMDQuery
+					.and()
+					.where("age", ">=", 13)
+					.where("age", "<=", 16)
+				)
+			);
+
+		const realCmd: string = `SELECT * FROM tab WHERE ((age>=18 AND age<=21 AND (gender=true OR isCool!=false)) OR (age>=13 AND age<=16));`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
 });
 
 describe("Delete Queries", () => {
