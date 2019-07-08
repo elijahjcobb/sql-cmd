@@ -22,15 +22,14 @@
  *
  */
 
+import * as Crypto from "crypto";
 import { ECSQLCMD, ECSQLCMDQuery } from "../index";
 
-describe("Select Queries", () => {
+describe("Select", () => {
 
 	test("Base Query", () => {
 
-		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab");
+		const cmd: ECSQLCMD = ECSQLCMD.select("tab");
 
 		const realCmd: string = `SELECT * FROM tab;`;
 
@@ -41,8 +40,7 @@ describe("Select Queries", () => {
 	test("Limiting", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab")
+			.select("tab")
 			.limit(12);
 
 		const realCmd: string = `SELECT * FROM tab LIMIT 12;`;
@@ -54,8 +52,7 @@ describe("Select Queries", () => {
 	test("Sorting", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab")
+			.select("tab")
 			.sort("foo", "<");
 
 		const realCmd: string = `SELECT * FROM tab ORDER BY foo ASC;`;
@@ -67,8 +64,7 @@ describe("Select Queries", () => {
 	test("Sorting & Limiting", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab")
+			.select("tab")
 			.sort("foo", "<")
 			.limit(12);
 
@@ -78,12 +74,23 @@ describe("Select Queries", () => {
 
 	});
 
+	test("Conditional", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select("tab")
+			.where("key", "<=", 10);
+
+		const realCmd: string = `SELECT * FROM tab WHERE (key<=10);`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
 	test("Conditionals", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab")
-			.where(ECSQLCMDQuery
+			.select("tab")
+			.whereThese(ECSQLCMDQuery
 				.and()
 				.where("key1", "=", "hi")
 				.where("key2", "<=", 10)
@@ -98,9 +105,8 @@ describe("Select Queries", () => {
 	test("Nested Conditional", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab")
-			.where(ECSQLCMDQuery
+			.select("tab")
+			.whereThese(ECSQLCMDQuery
 				.or()
 				.whereThese(ECSQLCMDQuery
 					.and()
@@ -119,9 +125,8 @@ describe("Select Queries", () => {
 	test("Multi Layered Nested Conditional", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab")
-			.where(ECSQLCMDQuery
+			.select("tab")
+			.whereThese(ECSQLCMDQuery
 				.or()
 				.whereThese(ECSQLCMDQuery
 					.and()
@@ -150,15 +155,10 @@ describe("Select Queries", () => {
 	test("Sub Query", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD
-			.select()
-			.from("tab1")
-			.where(
-				ECSQLCMDQuery
-					.and()
-					.whereKeyIsValueOfQuery("id", "tab2", "id", "foo")
-			);
+			.select("tab1")
+			.whereKeyIsValueOfQuery("id", "tab2", "id", "XXX");
 
-		const realCmd: string = `SELECT * FROM tab1 WHERE (id IN (SELECT id FROM tab2 WHERE id='foo');`;
+		const realCmd: string = `SELECT * FROM tab1 WHERE (id IN (SELECT id FROM tab2 WHERE id='XXX');`;
 
 		expect(cmd.generate()).toEqual(realCmd);
 
@@ -166,46 +166,58 @@ describe("Select Queries", () => {
 
 });
 
-test("Delete Queries", () => {
+describe("Delete", () => {
+
+	test("Delete All", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.delete("tab");
+
+		const realCmd: string = `DELETE FROM tab;`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+	test("Delete Where", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.delete("tab")
+			.where("x", "=", "John");
+
+		const realCmd: string = `DELETE FROM tab WHERE (x='John');`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
+});
+
+test("Insert", () => {
+
+	const data: Buffer = Crypto.randomBytes(2);
 
 	const cmd: ECSQLCMD = ECSQLCMD
-		.delete()
-		.from("tab1")
-		.where(
-			ECSQLCMDQuery
-				.and()
-				.where("foo", "=", 23)
-		);
+		.insert("tab")
+		.set("name", "Elijah")
+		.set("age", 20)
+		.set("isMale", true)
+		.set("buff", data);
 
-	const realCmd: string = `DELETE FROM tab1 WHERE (foo=23);`;
+	const realCmd: string = `INSERT INTO tab (name, age, isMale, buff) VALUES ('Elijah', 20, true, '${data.toString("hex")}');`;
 
 	expect(cmd.generate()).toEqual(realCmd);
 
 });
 
-test("Insert Queries", () => {
+test("Update", () => {
 
 	const cmd: ECSQLCMD = ECSQLCMD
-		.insert()
-		.from("tab1")
-		.set("foo", 12)
-		.set("bar", "hi");
+		.update("tab")
+		.set("name", "Elijah")
+		.where("id", "=", "xxx");
 
-	const realCmd: string = `INSERT INTO tab1 (foo, bar) VALUES (12, 'hi');`;
-
-	expect(cmd.generate()).toEqual(realCmd);
-
-});
-
-test("Update Queries", () => {
-
-	const cmd: ECSQLCMD = ECSQLCMD
-		.update()
-		.from("tab1")
-		.set("foo", 12)
-		.set("bar", "hi");
-
-	const realCmd: string = `UPDATE tab1 SET foo=12, bar='hi';`;
+	const realCmd: string = `UPDATE tab SET name='Elijah' WHERE (id='xxx');`;
 
 	expect(cmd.generate()).toEqual(realCmd);
 

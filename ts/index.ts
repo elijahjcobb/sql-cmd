@@ -33,7 +33,7 @@ enum ECSQLCMDMethod {
 
 type ECSQLCMDSort = "<" | ">";
 type ECSQLCMDOperator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "in" | "like";
-type ECSQLCMDValue = string | number | boolean | undefined | null;
+type ECSQLCMDValue = string | number | boolean | undefined | null | Buffer;
 
 const escapeValue: (value: ECSQLCMDValue) => string | number | boolean = (value: ECSQLCMDValue): string | number | boolean => {
 
@@ -48,6 +48,22 @@ const escapeValue: (value: ECSQLCMDValue) => string | number | boolean = (value:
 
 		return escaped;
 
+	} else if (Buffer.isBuffer(value)) {
+
+		let encodedData: string;
+
+		try {
+
+			encodedData = value.toString("hex");
+
+		} catch (e) {
+
+			throw Error("Failed to encode Buffer to base64 string.");
+
+		}
+
+		return `'${encodedData}'`;
+
 	} else return value;
 
 };
@@ -58,33 +74,17 @@ interface ECSQLGeneratable {
 
 export class ECSQLCMD implements ECSQLGeneratable {
 
-	private readonly method: ECSQLCMDMethod;
-	private table: string | undefined;
+	private method: ECSQLCMDMethod;
+	private table: string;
 	private orderings: { key: string, direction: ECSQLCMDSort}[] = [];
 	private limitOfItems: number = -1;
 	private parameters: ECMap<string, ECSQLCMDValue> = new ECMap<string, ECSQLCMDValue>();
 	private queries: ECSQLCMDQuery | undefined;
 
-	private constructor(method: ECSQLCMDMethod) { this.method = method; }
-
-	public from(table: string): ECSQLCMD {
+	private constructor(table: string, method: ECSQLCMDMethod) {
 
 		this.table = table;
-		return this;
-
-	}
-
-	public into(table: string): ECSQLCMD {
-
-		this.table = table;
-		return this;
-
-	}
-
-	public in(table: string): ECSQLCMD {
-
-		this.table = table;
-		return this;
+		this.method = method;
 
 	}
 
@@ -111,7 +111,6 @@ export class ECSQLCMD implements ECSQLGeneratable {
 
 	public generate(): string {
 
-		if (this.table === undefined) throw Error("You must specify a table with from(), in(), or into().");
 		let command: string = "";
 
 		if (this.method === ECSQLCMDMethod.select) {
@@ -173,17 +172,31 @@ export class ECSQLCMD implements ECSQLGeneratable {
 
 	}
 
-	public where(query: ECSQLCMDQuery): ECSQLCMD {
+	public where(key: string, operator: ECSQLCMDOperator, value: ECSQLCMDValue): ECSQLCMD {
+
+		this.queries = ECSQLCMDQuery.and().where(key, operator, value);
+		return this;
+
+	}
+
+	public whereThese(query: ECSQLCMDQuery): ECSQLCMD {
 
 		this.queries = query;
 		return this;
 
 	}
 
-	public static select(): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.select); }
-	public static update(): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.update); }
-	public static insert(): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.insert); }
-	public static delete(): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.delete); }
+	public whereKeyIsValueOfQuery(key: string, otherTable: string, otherKey: string, value: ECSQLCMDValue): ECSQLCMD {
+
+		this.queries = ECSQLCMDQuery.and().whereKeyIsValueOfQuery(key, otherTable, otherKey, value);
+		return this;
+
+	}
+
+	public static select(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.select); }
+	public static update(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.update); }
+	public static insert(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.insert); }
+	public static delete(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.delete); }
 
 }
 
