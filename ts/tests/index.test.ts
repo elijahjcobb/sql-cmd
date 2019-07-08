@@ -147,16 +147,66 @@ describe("Select Queries", () => {
 
 	});
 
+	test("Sub Query", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select()
+			.from("tab1")
+			.where(
+				ECSQLCMDQuery
+					.and()
+					.whereKeyIsValueOfQuery("id", "tab2", "id", "foo")
+			);
+
+		const realCmd: string = `SELECT * FROM tab1 WHERE (id IN (SELECT id FROM tab2 WHERE id='foo');`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
 });
 
-describe("Delete Queries", () => {
+test("Delete Queries", () => {
+
+	const cmd: ECSQLCMD = ECSQLCMD
+		.delete()
+		.from("tab1")
+		.where(
+			ECSQLCMDQuery
+				.and()
+				.where("foo", "=", 23)
+		);
+
+	const realCmd: string = `DELETE FROM tab1 WHERE (foo=23);`;
+
+	expect(cmd.generate()).toEqual(realCmd);
 
 });
 
-describe("Insert Queries", () => {
+test("Insert Queries", () => {
+
+	const cmd: ECSQLCMD = ECSQLCMD
+		.insert()
+		.from("tab1")
+		.set("foo", 12)
+		.set("bar", "hi");
+
+	const realCmd: string = `INSERT INTO tab1 (foo, bar) VALUES (12, 'hi');`;
+
+	expect(cmd.generate()).toEqual(realCmd);
 
 });
 
-describe("Update Queries", () => {
+test("Update Queries", () => {
+
+	const cmd: ECSQLCMD = ECSQLCMD
+		.update()
+		.from("tab1")
+		.set("foo", 12)
+		.set("bar", "hi");
+
+	const realCmd: string = `UPDATE tab1 SET foo=12, bar='hi';`;
+
+	expect(cmd.generate()).toEqual(realCmd);
 
 });
