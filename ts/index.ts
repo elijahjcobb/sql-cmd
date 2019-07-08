@@ -218,6 +218,7 @@ export class ECSQLCMD implements ECSQLGeneratable {
 	public static update(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.update); }
 	public static insert(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.insert); }
 	public static delete(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.delete); }
+	public static count(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.countg); }
 
 }
 
