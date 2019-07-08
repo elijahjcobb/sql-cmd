@@ -28,7 +28,8 @@ enum ECSQLCMDMethod {
 	select = "SELECT",
 	update = "UPDATE",
 	insert = "INSERT",
-	delete = "DELETE"
+	delete = "DELETE",
+	count = "COUNT"
 }
 
 type ECSQLCMDSort = "<" | ">";
@@ -163,6 +164,26 @@ export class ECSQLCMD implements ECSQLGeneratable {
 			command += ` ${updateItems.join(", ")}`;
 
 			if (this.queries) command += ` WHERE ${this.queries.generate()}`;
+
+		} else if (this.method === ECSQLCMDMethod.count) {
+
+			command = `SELECT COUNT(*) FROM ${this.table}`;
+			if (this.queries) command += ` WHERE ${this.queries.generate()}`;
+			if (this.orderings.length > 0) {
+
+				command += ` ORDER BY `;
+				const formattedOrders: string[] = [];
+
+				this.orderings.forEach((ordering: { key: string, direction: ECSQLCMDSort}) => {
+
+					formattedOrders.push(`${ordering.key} ${ordering.direction === "<" ? "ASC" : "DESC"}`);
+
+				});
+
+				command += formattedOrders.join(", ");
+			}
+
+			if (this.limitOfItems !== -1) command += ` LIMIT ${this.limitOfItems}`;
 
 		}
 
