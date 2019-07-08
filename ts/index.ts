@@ -52,7 +52,11 @@ const escapeValue: (value: ECSQLCMDValue) => string | number | boolean = (value:
 
 };
 
-export class ECSQLCMD {
+interface ECSQLGeneratable {
+	generate(): string;
+}
+
+export class ECSQLCMD implements ECSQLGeneratable {
 
 	private readonly method: ECSQLCMDMethod;
 	private table: string | undefined;
@@ -190,10 +194,30 @@ type ECSQLCMDQueryItems = {
 	value: ECSQLCMDValue
 };
 
-export class ECSQLCMDQuery {
+export class ECSQLCMDSubQuery implements ECSQLGeneratable {
+	public readonly key: string;
+	public readonly otherTable: string;
+	public readonly otherKey: string;
+	public readonly value: ECSQLCMDValue;
+
+	public constructor(key: string, otherTable: string, otherKey: string, value: ECSQLCMDValue) {
+		this.key = key;
+		this.otherTable = otherTable;
+		this.otherKey = otherKey;
+		this.value = value;
+	}
+
+	public generate(): string {
+
+		return `${this.key} IN (SELECT ${this.otherKey} FROM ${this.otherTable} WHERE ${this.otherKey}=${escapeValue(this.value)}`;
+
+	}
+}
+
+export class ECSQLCMDQuery implements ECSQLGeneratable {
 
 	private condition: ECSQLCMDQueryCondition | undefined;
-	private items: ECArrayList<ECSQLCMDQueryItems | ECSQLCMDQuery> = new ECArrayList<ECSQLCMDQueryItems | ECSQLCMDQuery>();
+	private items: ECArrayList<ECSQLCMDQueryItems | ECSQLCMDQuery | ECSQLCMDSubQuery> = new ECArrayList<ECSQLCMDQueryItems | ECSQLCMDQuery | ECSQLCMDSubQuery>();
 
 	public where(key: string, operator: ECSQLCMDOperator, value: ECSQLCMDValue): ECSQLCMDQuery {
 
@@ -209,13 +233,20 @@ export class ECSQLCMDQuery {
 
 	}
 
+	public whereKeyIsValueOfQuery(key: string, otherTable: string, otherKey: string, value: ECSQLCMDValue): ECSQLCMDQuery {
+
+		this.items.add(new ECSQLCMDSubQuery(key, otherTable, otherKey, value));
+		return this;
+
+	}
+
 	public generate(): string {
 
 		const parts: string[] = [];
 
-		this.items.forEach((item: ECSQLCMDQueryItems | ECSQLCMDQuery) => {
+		this.items.forEach((item: ECSQLCMDQueryItems | ECSQLCMDQuery | ECSQLCMDSubQuery) => {
 
-			if (item instanceof ECSQLCMDQuery) parts.push(item.generate());
+			if (item instanceof ECSQLCMDQuery || item instanceof ECSQLCMDSubQuery) parts.push(item.generate());
 			else parts.push(item.key + item.operator + escapeValue(item.value));
 
 		});
