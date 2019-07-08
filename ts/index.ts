@@ -218,7 +218,7 @@ export class ECSQLCMD implements ECSQLGeneratable {
 	public static update(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.update); }
 	public static insert(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.insert); }
 	public static delete(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.delete); }
-	public static count(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.countg); }
+	public static count(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.count); }
 
 }
 
@@ -244,7 +244,7 @@ export class ECSQLCMDSubQuery implements ECSQLGeneratable {
 
 	public generate(): string {
 
-		return `${this.key} IN (SELECT ${this.otherKey} FROM ${this.otherTable} WHERE ${this.otherKey}=${escapeValue(this.value)}`;
+		return `${this.key} IN (SELECT ${this.otherKey} FROM ${this.otherTable} WHERE ${this.otherKey}=${escapeValue(this.value)})`;
 
 	}
 }
