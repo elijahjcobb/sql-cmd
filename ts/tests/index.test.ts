@@ -86,6 +86,18 @@ describe("Select", () => {
 
 	});
 
+	test("In", () => {
+
+		const cmd: ECSQLCMD = ECSQLCMD
+			.select("tab")
+			.where("x", "in", ["a", "b", "c"]);
+
+		const realCmd: string = `SELECT * FROM tab WHERE (x IN ('a', 'b', 'c'));`;
+
+		expect(cmd.generate()).toEqual(realCmd);
+
+	});
+
 	test("Conditionals", () => {
 
 		const cmd: ECSQLCMD = ECSQLCMD

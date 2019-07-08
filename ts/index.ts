@@ -33,7 +33,7 @@ enum ECSQLCMDMethod {
 }
 
 type ECSQLCMDSort = "<" | ">";
-type ECSQLCMDOperator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "in" | "like";
+type ECSQLCMDOperator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "in";
 type ECSQLCMDValue = string | number | boolean | undefined | null | Buffer;
 
 const escapeValue: (value: ECSQLCMDValue) => string | number | boolean = (value: ECSQLCMDValue): string | number | boolean => {
@@ -76,13 +76,13 @@ interface ECSQLGeneratable {
 export class ECSQLCMD implements ECSQLGeneratable {
 
 	private method: ECSQLCMDMethod;
-	private table: string;
+	private table: string | undefined;
 	private orderings: { key: string, direction: ECSQLCMDSort}[] = [];
 	private limitOfItems: number = -1;
 	private parameters: ECMap<string, ECSQLCMDValue> = new ECMap<string, ECSQLCMDValue>();
 	private queries: ECSQLCMDQuery | undefined;
 
-	private constructor(table: string, method: ECSQLCMDMethod) {
+	private constructor(method: ECSQLCMDMethod, table?: string) {
 
 		this.table = table;
 		this.method = method;
@@ -110,9 +110,11 @@ export class ECSQLCMD implements ECSQLGeneratable {
 
 	}
 
-	public generate(): string {
+	public generate(table?: string): string {
 
 		let command: string = "";
+		if (table) this.table = table;
+		if (this.table === undefined) throw new Error("Table must be defined.");
 
 		if (this.method === ECSQLCMDMethod.select) {
 
@@ -193,7 +195,7 @@ export class ECSQLCMD implements ECSQLGeneratable {
 
 	}
 
-	public where(key: string, operator: ECSQLCMDOperator, value: ECSQLCMDValue): ECSQLCMD {
+	public where(key: string, operator: ECSQLCMDOperator, value: ECSQLCMDValue | string[]): ECSQLCMD {
 
 		this.queries = ECSQLCMDQuery.and().where(key, operator, value);
 		return this;
@@ -214,11 +216,11 @@ export class ECSQLCMD implements ECSQLGeneratable {
 
 	}
 
-	public static select(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.select); }
-	public static update(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.update); }
-	public static insert(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.insert); }
-	public static delete(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.delete); }
-	public static count(table: string): ECSQLCMD { return new ECSQLCMD(table, ECSQLCMDMethod.count); }
+	public static select(table?: string): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.select, table); }
+	public static update(table?: string): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.update, table); }
+	public static insert(table?: string): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.insert, table); }
+	public static delete(table?: string): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.delete, table); }
+	public static count(table?: string): ECSQLCMD { return new ECSQLCMD(ECSQLCMDMethod.count, table); }
 
 }
 
@@ -226,7 +228,7 @@ type ECSQLCMDQueryCondition = "AND" | "OR";
 type ECSQLCMDQueryItems = {
 	key: string,
 	operator: ECSQLCMDOperator,
-	value: ECSQLCMDValue
+	value: ECSQLCMDValue | string[]
 };
 
 export class ECSQLCMDSubQuery implements ECSQLGeneratable {
@@ -254,7 +256,7 @@ export class ECSQLCMDQuery implements ECSQLGeneratable {
 	private condition: ECSQLCMDQueryCondition | undefined;
 	private items: ECArrayList<ECSQLCMDQueryItems | ECSQLCMDQuery | ECSQLCMDSubQuery> = new ECArrayList<ECSQLCMDQueryItems | ECSQLCMDQuery | ECSQLCMDSubQuery>();
 
-	public where(key: string, operator: ECSQLCMDOperator, value: ECSQLCMDValue): ECSQLCMDQuery {
+	public where(key: string, operator: ECSQLCMDOperator, value: ECSQLCMDValue | string[]): ECSQLCMDQuery {
 
 		this.items.add({key, operator, value});
 		return this;
@@ -282,7 +284,23 @@ export class ECSQLCMDQuery implements ECSQLGeneratable {
 		this.items.forEach((item: ECSQLCMDQueryItems | ECSQLCMDQuery | ECSQLCMDSubQuery) => {
 
 			if (item instanceof ECSQLCMDQuery || item instanceof ECSQLCMDSubQuery) parts.push(item.generate());
-			else parts.push(item.key + item.operator + escapeValue(item.value));
+			else {
+				if (Array.isArray(item.value)) {
+
+					const value: ECSQLCMDValue = "(" + item.value.map((value: string) => {
+
+						return escapeValue(value);
+
+					}).join(", ") + ")";
+
+					parts.push(item.key + " IN " + value);
+
+				} else {
+
+					parts.push(item.key + "" + item.operator + "" + escapeValue(item.value));
+
+				}
+			}
 
 		});
 
